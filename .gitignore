@@ -1,0 +1,11 @@
+.pio
+.vscode
+.gcc-flags.json
+.clang-format
+*.bin
+*.elf
+*.hex
+*.map
+.DS_Store
+node_modules
+dist
