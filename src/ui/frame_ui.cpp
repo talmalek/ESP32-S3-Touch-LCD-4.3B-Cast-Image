@@ -107,7 +107,7 @@ void FrameUI::create() {
 
     // Settings Menu - Premium Look
     settings_menu = lv_obj_create(main_cont);
-    lv_obj_set_size(settings_menu, 460, 440);
+    lv_obj_set_size(settings_menu, 460, 360);
     lv_obj_align(settings_menu, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_bg_color(settings_menu, lv_color_hex(0x1a1a2e), 0);
     lv_obj_set_style_bg_opa(settings_menu, 245, 0);
@@ -142,7 +142,7 @@ void FrameUI::create() {
 
     // Flex container for buttons
     lv_obj_t* btn_cont = lv_obj_create(settings_menu);
-    lv_obj_set_size(btn_cont, 400, 340);
+    lv_obj_set_size(btn_cont, 400, 260);
     lv_obj_align(btn_cont, LV_ALIGN_TOP_MID, 0, 75);
     lv_obj_set_style_bg_opa(btn_cont, 0, 0);
     lv_obj_set_style_border_width(btn_cont, 0, 0);
@@ -196,24 +196,6 @@ void FrameUI::create() {
     lv_obj_set_style_text_color(clock_toggle_lbl, lv_color_hex(0xffffff), 0);
     lv_obj_set_style_text_font(clock_toggle_lbl, &lv_font_montserrat_24, 0);
     lv_obj_align(clock_toggle_lbl, LV_ALIGN_CENTER, 0, 0);
-
-    // 4. Sync Display Button
-    lv_obj_t* sync_btn = lv_btn_create(btn_cont);
-    lv_obj_set_size(sync_btn, 320, 60);
-    lv_obj_set_style_bg_color(sync_btn, lv_color_hex(0x000000), 0);
-    lv_obj_set_style_border_width(sync_btn, 2, 0);
-    lv_obj_set_style_border_color(sync_btn, lv_color_hex(0x4ecdc4), 0);
-    lv_obj_set_style_radius(sync_btn, 16, 0);
-    lv_obj_add_event_cb(sync_btn, [](lv_event_t* e) {
-        FrameUI::syncDisplay();
-        FrameUI::hideSettingsMenu();
-    }, LV_EVENT_CLICKED, nullptr);
-    
-    lv_obj_t* sync_lbl = lv_label_create(sync_btn);
-    lv_label_set_text(sync_lbl, "Sync & Fix Display");
-    lv_obj_set_style_text_color(sync_lbl, lv_color_hex(0xffffff), 0);
-    lv_obj_set_style_text_font(sync_lbl, &lv_font_montserrat_24, 0);
-    lv_obj_align(sync_lbl, LV_ALIGN_CENTER, 0, 0);
 
     // Toggle settings event on screen click
     lv_event_cb_t toggle_settings = [](lv_event_t* e) {
@@ -370,16 +352,6 @@ void FrameUI::hideSettingsMenu() {
 }
 
 bool FrameUI::isSettingsMenuVisible() { return settings_open; }
-
-void FrameUI::syncDisplay() {
-    lvgl_port_stop();
-    delay(100);
-    lvgl_port_resume();
-    
-    lvgl_port_lock(-1);
-    lv_obj_invalidate(lv_scr_act());
-    lvgl_port_unlock();
-}
 
 void FrameUI::onClearImage() {
     FrameUI::clearImage();
