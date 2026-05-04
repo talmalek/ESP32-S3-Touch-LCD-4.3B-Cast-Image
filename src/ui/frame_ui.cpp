@@ -193,10 +193,8 @@ void FrameUI::create() {
     lv_event_cb_t toggle_settings = [](lv_event_t* e) {
         if (settings_open) return; // Handled by overlay when open
         
-        lv_obj_t * target = lv_event_get_target(e);
-        // Allow clicks on background, instructions, or the clock overlay itself to open settings
-        if (target != main_cont && target != bg_img && target != clock_cont && target != no_image_cont) return;
-        
+        // If we are here, it means something was clicked that is NOT the settings menu
+        // and we are not in 'settings_open' state. Just open it.
         FrameUI::showSettingsMenu();
     };
     lv_obj_add_event_cb(main_cont, toggle_settings, LV_EVENT_CLICKED, nullptr);

@@ -71,7 +71,7 @@ void FlipClock::create(lv_obj_t* parent) {
     lv_obj_t *cont = lv_obj_create(parent);
     lv_obj_remove_style_all(cont);
     lv_obj_set_size(cont, LV_PCT(100), LV_PCT(100));
-    lv_obj_clear_flag(cont, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_clear_flag(cont, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
 
     // Clock container — centered
     lv_obj_t *cont_clk = lv_obj_create(cont);
