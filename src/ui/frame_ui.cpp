@@ -22,6 +22,7 @@ static bool settings_open = false;
 static char server_ip[16] = "";
 static uint8_t* img_buffer = nullptr;
 static bool imageLoadQueued = false;
+static uint32_t imageLoadQueuedTime = 0;
 
 bool FrameUI::clock_enabled = false;
 
@@ -325,6 +326,7 @@ void FrameUI::onRestoreDefaults() {
 
 void FrameUI::queueImageLoad() {
     imageLoadQueued = true;
+    imageLoadQueuedTime = millis();
 }
 
 void FrameUI::toggleClock() {
@@ -360,6 +362,10 @@ void FrameUI::loop() {
     }
 
     if (!imageLoadQueued) return;
+    
+    // Wait for system to settle after heavy flash write (prevent shifted display)
+    if (millis() - imageLoadQueuedTime < 1000) return;
+    
     imageLoadQueued = false;
     
     lvgl_port_lock(-1);
