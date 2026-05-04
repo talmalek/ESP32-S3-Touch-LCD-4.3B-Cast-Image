@@ -41,13 +41,13 @@
     #define ESP_PANEL_BOARD_LCD_RGB_VBP               (23)
     #define ESP_PANEL_BOARD_LCD_RGB_VFP               (12)
 #else
-    #define ESP_PANEL_BOARD_LCD_RGB_CLK_HZ            (12 * 1000 * 1000)
-    #define ESP_PANEL_BOARD_LCD_RGB_HPW               (4)
-    #define ESP_PANEL_BOARD_LCD_RGB_HBP               (8)
-    #define ESP_PANEL_BOARD_LCD_RGB_HFP               (8)
-    #define ESP_PANEL_BOARD_LCD_RGB_VPW               (4)
-    #define ESP_PANEL_BOARD_LCD_RGB_VBP               (16)
-    #define ESP_PANEL_BOARD_LCD_RGB_VFP               (16)
+    #define ESP_PANEL_BOARD_LCD_RGB_CLK_HZ            (10 * 1000 * 1000)
+    #define ESP_PANEL_BOARD_LCD_RGB_HPW               (40)
+    #define ESP_PANEL_BOARD_LCD_RGB_HBP               (40)
+    #define ESP_PANEL_BOARD_LCD_RGB_HFP               (40)
+    #define ESP_PANEL_BOARD_LCD_RGB_VPW               (10)
+    #define ESP_PANEL_BOARD_LCD_RGB_VBP               (10)
+    #define ESP_PANEL_BOARD_LCD_RGB_VFP               (10)
 #endif
 
     #define ESP_PANEL_BOARD_LCD_RGB_PCLK_ACTIVE_NEG (1)

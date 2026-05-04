@@ -285,8 +285,9 @@ void FrameUI::loadStoredImage() {
     lv_refr_now(nullptr); 
     lvgl_port_unlock();
 
-    // Brief delay for the display driver to catch up
-    delay(150);
+    // Significant delay to ensure multiple full frame refresh cycles complete stably
+    Serial.println("[FrameUI] Waiting for stable display sync...");
+    delay(300); 
 
     // RESTORE LIGHTS - This is critical, we do it regardless of success
     if (board && board->getBacklight()) {
@@ -406,8 +407,8 @@ void FrameUI::loop() {
 
     if (!imageLoadQueued) return;
     
-    // Wait for system to settle after heavy flash write
-    if (millis() - imageLoadQueuedTime < 500) return; 
+    // Wait for system to settle after heavy flash write (allow sockets to close)
+    if (millis() - imageLoadQueuedTime < 1500) return; 
     
     imageLoadQueued = false;
     
