@@ -8,6 +8,7 @@
 extern esp_panel::drivers::LCD* getLcd();
 
 static lv_obj_t* main_cont = nullptr;
+static lv_obj_t* no_image_cont = nullptr;
 static lv_obj_t* info_label = nullptr;
 static lv_obj_t* ip_label = nullptr;
 static lv_obj_t* settings_menu = nullptr;
@@ -38,17 +39,30 @@ void FrameUI::create() {
     lv_obj_set_pos(main_cont, 0, 0);
     lv_obj_set_style_bg_color(main_cont, lv_color_hex(0x0F0F1A), 0);
 
-    info_label = lv_label_create(main_cont);
-    lv_label_set_text(info_label, "Picture Frame");
-    lv_obj_align(info_label, LV_ALIGN_CENTER, 0, 0);
-    lv_obj_set_style_text_color(info_label, lv_color_hex(0x4ECDC4), 0);
-    lv_obj_set_style_text_font(info_label, &lv_font_montserrat_24, 0);
+    no_image_cont = lv_obj_create(main_cont);
+    lv_obj_set_size(no_image_cont, 800, 480);
+    lv_obj_set_pos(no_image_cont, 0, 0);
+    lv_obj_set_style_bg_opa(no_image_cont, 0, 0);
+    lv_obj_set_style_border_width(no_image_cont, 0, 0);
+    lv_obj_clear_flag(no_image_cont, LV_OBJ_FLAG_SCROLLABLE);
 
-    ip_label = lv_label_create(main_cont);
-    lv_label_set_text(ip_label, "Open browser to this IP");
-    lv_obj_set_pos(ip_label, 50, 80);
-    lv_obj_set_style_text_color(ip_label, lv_color_hex(0x888890), 0);
-    lv_obj_set_style_text_font(ip_label, LV_FONT_DEFAULT, 0);
+    info_label = lv_label_create(no_image_cont);
+    lv_label_set_text(info_label, "No Image Loaded");
+    lv_obj_align(info_label, LV_ALIGN_CENTER, 0, -40);
+    lv_obj_set_style_text_color(info_label, lv_color_hex(0x4ECDC4), 0);
+    lv_obj_set_style_text_font(info_label, &lv_font_montserrat_32, 0);
+
+    ip_label = lv_label_create(no_image_cont);
+    lv_label_set_text(ip_label, "Connecting to WiFi...");
+    lv_obj_align(ip_label, LV_ALIGN_CENTER, 0, 30);
+    lv_obj_set_style_text_color(ip_label, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_text_font(ip_label, &lv_font_montserrat_24, 0);
+
+    lv_obj_t* hint_lbl = lv_label_create(no_image_cont);
+    lv_label_set_text(hint_lbl, "Open the URL above in your browser to upload an image");
+    lv_obj_align(hint_lbl, LV_ALIGN_CENTER, 0, 75);
+    lv_obj_set_style_text_color(hint_lbl, lv_color_hex(0x888890), 0);
+    lv_obj_set_style_text_font(hint_lbl, &lv_font_montserrat_18, 0);
 
     bg_img = lv_img_create(main_cont);
     lv_obj_set_pos(bg_img, 0, 0);
@@ -156,8 +170,7 @@ void FrameUI::showUploading() {
     if (settings_menu) lv_obj_add_flag(settings_menu, LV_OBJ_FLAG_HIDDEN);
     settings_open = false;
     
-    if (info_label) lv_obj_add_flag(info_label, LV_OBJ_FLAG_HIDDEN);
-    if (ip_label) lv_obj_add_flag(ip_label, LV_OBJ_FLAG_HIDDEN);
+    if (no_image_cont) lv_obj_add_flag(no_image_cont, LV_OBJ_FLAG_HIDDEN);
     
     lv_obj_invalidate(lv_scr_act());
     lvgl_port_unlock();
@@ -193,14 +206,12 @@ void FrameUI::loadStoredImage() {
         lv_obj_set_pos(bg_img, 0, 0);
         lv_obj_clear_flag(bg_img, LV_OBJ_FLAG_HIDDEN);
         
-        lv_obj_add_flag(info_label, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(ip_label, LV_OBJ_FLAG_HIDDEN);
+        if (no_image_cont) lv_obj_add_flag(no_image_cont, LV_OBJ_FLAG_HIDDEN);
     } else {
         if (img_buffer) heap_caps_free(img_buffer);
         img_buffer = nullptr;
         lv_obj_add_flag(bg_img, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_clear_flag(info_label, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_clear_flag(ip_label, LV_OBJ_FLAG_HIDDEN);
+        if (no_image_cont) lv_obj_clear_flag(no_image_cont, LV_OBJ_FLAG_HIDDEN);
     }
 }
 
@@ -215,11 +226,7 @@ void FrameUI::clearImage() {
         img_buffer = nullptr;
     }
     lv_obj_add_flag(bg_img, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_clear_flag(info_label, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_clear_flag(ip_label, LV_OBJ_FLAG_HIDDEN);
-    lv_label_set_text(info_label, "Image Cleared");
-    lv_obj_set_style_text_font(info_label, &lv_font_montserrat_24, 0);
-    lv_obj_align(info_label, LV_ALIGN_CENTER, 0, 0);
+    if (no_image_cont) lv_obj_clear_flag(no_image_cont, LV_OBJ_FLAG_HIDDEN);
 }
 
 bool FrameUI::hasImage() {
