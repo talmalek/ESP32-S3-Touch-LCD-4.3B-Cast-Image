@@ -40,6 +40,11 @@ void setup() {
     board->init();
     board->begin();
     
+    // Force backlight OFF as soon as possible after begin
+    if (board->getBacklight()) {
+        board->getBacklight()->off();
+    }
+    
     Serial.println("3. LVGL...");
     lvgl_port_init(board->getLCD(), board->getTouch());
     

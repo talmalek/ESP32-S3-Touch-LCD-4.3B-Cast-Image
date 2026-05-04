@@ -169,6 +169,7 @@
         auto board = static_cast<Board *>(p);  \
         auto expander = static_cast<esp_expander::CH422G*>(board->getIO_Expander()->getBase()); \
         expander->enableAllIO_Output(); \
+        expander->digitalWrite(2, 0); /* Explicitly turn OFF backlight early */ \
         return true;    \
     }
 
