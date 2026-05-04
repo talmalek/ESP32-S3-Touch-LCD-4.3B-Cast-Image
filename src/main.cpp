@@ -40,20 +40,20 @@ void setup() {
     board->init();
     board->begin();
     
-    auto backlight = board->getBacklight();
-    if (backlight) {
-        backlight->on();
-        Serial.println("Backlight ON");
-    }
-    
     Serial.println("3. LVGL...");
     lvgl_port_init(board->getLCD(), board->getTouch());
     
     Serial.println("4. Splash...");
     lvgl_port_lock(-1);
     SplashScreen::create();
+    lv_refr_now(nullptr); // Ensure first frame is rendered
     lvgl_port_unlock();
     
+    auto backlight = board->getBacklight();
+    if (backlight) {
+        backlight->on();
+        Serial.println("Backlight ON (Splash Ready)");
+    }
     
     lvgl_port_lock(-1);
     SplashScreen::update_subtitle("Connecting to WiFi...");
