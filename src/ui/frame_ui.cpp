@@ -218,6 +218,16 @@ void FrameUI::showUploading() {
 }
 
 void FrameUI::loadStoredImage() {
+    // 1. Prepare system for heavy load
+    lvgl_port_stop(); // Stop LVGL task to prevent PSRAM bus contention
+    
+    // Dim backlight slightly to hide transition if needed
+    esp_panel::drivers::LCD* lcd = getLcd();
+    if (lcd) {
+        // We don't want to turn it fully off to avoid a flash, 
+        // but stopping the display update is better.
+    }
+    
     ensureDisplayReady();
     ensureFileReady();
     
@@ -254,6 +264,14 @@ void FrameUI::loadStoredImage() {
         lv_obj_add_flag(bg_img, LV_OBJ_FLAG_HIDDEN);
         if (no_image_cont) lv_obj_clear_flag(no_image_cont, LV_OBJ_FLAG_HIDDEN);
     }
+
+    // 3. Resume system
+    lvgl_port_resume(); 
+    
+    // Force a full refresh after resume
+    lvgl_port_lock(-1);
+    lv_obj_invalidate(lv_scr_act());
+    lvgl_port_unlock();
 }
 
 void FrameUI::showImage() {
@@ -363,12 +381,11 @@ void FrameUI::loop() {
 
     if (!imageLoadQueued) return;
     
-    // Wait for system to settle after heavy flash write (prevent shifted display)
-    if (millis() - imageLoadQueuedTime < 1000) return;
+    // Wait for system to settle after heavy flash write
+    if (millis() - imageLoadQueuedTime < 1500) return; // Increased to 1.5s
     
     imageLoadQueued = false;
     
-    lvgl_port_lock(-1);
+    // loadStoredImage now handles its own locking/stopping
     loadStoredImage();
-    lvgl_port_unlock();
 }
