@@ -20,6 +20,7 @@ public:
     static void onRestoreDefaults();
     static void loop();
     static void queueImageLoad();
+    static void syncDisplay();
     
     // Clock
     static void toggleClock();
