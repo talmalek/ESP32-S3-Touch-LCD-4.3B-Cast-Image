@@ -285,15 +285,10 @@ void ImageWebServer::start() {
     server->on("/", HTTP_GET, handleRoot);
     
     server->on("/upload", HTTP_POST, []() {
-        // File is written and closed. Now safe to resume LVGL and load the image.
-        // LittleFS read happens in FrameUI::loop() on the main task after resume.
-        lvgl_port_resume();
-        delay(20); // Let LVGL task start before we queue the load
-        if (board && board->getBacklight()) {
-            board->getBacklight()->on();
-        }
+        // File is written and closed. Now safe to queue the load.
+        // We stay in 'stopped' mode (black screen) until loadStoredImage finishes.
         FrameUI::queueImageLoad();
-        server->send(200, "application/json", "{\"success\":true,\"message\":\"Image queued for loading\"}");
+        server->send(200, "application/json", "{\"success\":true,\"message\":\"Image uploaded successfully\"}");
     }, handleUpload);
     
     server->onNotFound(handleNotFound);

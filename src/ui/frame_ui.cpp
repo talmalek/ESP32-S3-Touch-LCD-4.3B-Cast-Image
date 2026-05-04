@@ -7,6 +7,7 @@
 #include <lvgl.h>
 
 extern esp_panel::drivers::LCD* getLcd();
+extern esp_panel::board::Board *board;
 
 static lv_obj_t* main_cont = nullptr;
 static lv_obj_t* no_image_cont = nullptr;
@@ -242,13 +243,19 @@ void FrameUI::showUploading() {
 
 void FrameUI::loadStoredImage() {
     // 1. Prepare system for heavy load
+    // Ensure screen is logically black/hidden before we start
+    lvgl_port_lock(-1);
+    if (bg_img) lv_obj_add_flag(bg_img, LV_OBJ_FLAG_HIDDEN);
+    if (no_image_cont) lv_obj_add_flag(no_image_cont, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_invalidate(lv_scr_act());
+    lvgl_port_unlock();
+
     lvgl_port_stop(); // Stop LVGL task to prevent PSRAM bus contention
     
-    // Dim backlight slightly to hide transition if needed
+    // Ensure backlight is OFF during the 'sausage making'
     esp_panel::drivers::LCD* lcd = getLcd();
-    if (lcd) {
-        // We don't want to turn it fully off to avoid a flash, 
-        // but stopping the display update is better.
+    if (board && board->getBacklight()) {
+        board->getBacklight()->off();
     }
     
     ensureDisplayReady();
@@ -288,13 +295,22 @@ void FrameUI::loadStoredImage() {
         if (no_image_cont) lv_obj_clear_flag(no_image_cont, LV_OBJ_FLAG_HIDDEN);
     }
 
-    // 3. Resume system
+    // 3. Resume and reveal only when ready
     lvgl_port_resume(); 
     
-    // Force a full refresh after resume
+    // Force a single full refresh while still dark
     lvgl_port_lock(-1);
     lv_obj_invalidate(lv_scr_act());
+    lv_refr_now(nullptr); 
     lvgl_port_unlock();
+
+    // Brief delay to allow DMA to push the first 'clean' frame
+    delay(100);
+
+    // Finally turn on the lights
+    if (board && board->getBacklight()) {
+        board->getBacklight()->on();
+    }
 }
 
 void FrameUI::showImage() {
