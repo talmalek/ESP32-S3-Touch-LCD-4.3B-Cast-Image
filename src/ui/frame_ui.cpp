@@ -243,32 +243,38 @@ void FrameUI::showUploading() {
 }
 
 void FrameUI::loadStoredImage() {
-    Serial.println("Loading image from storage...");
-    lvgl_port_stop(); // Stop LVGL task to prevent PSRAM bus contention
+    Serial.println(">>> [FrameUI] loadStoredImage START");
     
-    // Ensure backlight is OFF during the 'sausage making'
+    // Stop the background LVGL task to prevent memory contention during PSRAM access
+    lvgl_port_stop(); 
+    
     if (board && board->getBacklight()) {
         board->getBacklight()->off();
     }
     
-    ensureDisplayReady();
+    // Give filesystem a moment to settle
     ensureFileReady();
     
+    // Free existing buffer to maximize available PSRAM
     if (img_buffer) {
         heap_caps_free(img_buffer);
         img_buffer = nullptr;
     }
     
     size_t len = 0;
-    Serial.println("Reading file to PSRAM...");
+    Serial.println("[FrameUI] Reading image from storage...");
     img_buffer = StorageManager::readImageToPSRAM(&len);
-    Serial.printf("Read %d bytes\n", len);
     
-    // Images are always 800px wide (fixed by web client crop tool)
-    uint32_t width = 800;
-    uint32_t height = len / (width * 2); // RGB565 = 2 bytes per pixel
+    // We can resume the task now, but we must use lock() for UI updates
+    lvgl_port_resume(); 
     
-    if (img_buffer && height > 0) {
+    lvgl_port_lock(-1);
+    Serial.println("[FrameUI] Updating UI components...");
+    
+    if (img_buffer && len > 0) {
+        uint32_t width = 800;
+        uint32_t height = len / (width * 2);
+        
         img_dsc.data = img_buffer;
         img_dsc.header.w = width;
         img_dsc.header.h = height;
@@ -276,36 +282,37 @@ void FrameUI::loadStoredImage() {
         
         lv_img_cache_invalidate_src(&img_dsc);
         
-        lv_obj_add_flag(bg_img, LV_OBJ_FLAG_HIDDEN);
-        lv_img_set_src(bg_img, &img_dsc);
-        lv_obj_set_size(bg_img, width, height);
-        lv_obj_set_pos(bg_img, 0, 0);
-        lv_obj_clear_flag(bg_img, LV_OBJ_FLAG_HIDDEN);
+        if (bg_img) {
+            lv_obj_add_flag(bg_img, LV_OBJ_FLAG_HIDDEN);
+            lv_img_set_src(bg_img, &img_dsc);
+            lv_obj_set_size(bg_img, width, height);
+            lv_obj_set_pos(bg_img, 0, 0);
+            lv_obj_clear_flag(bg_img, LV_OBJ_FLAG_HIDDEN);
+        }
         
         if (no_image_cont) lv_obj_add_flag(no_image_cont, LV_OBJ_FLAG_HIDDEN);
+        Serial.printf("[FrameUI] Image updated: %dx%d (%d bytes)\n", width, height, len);
     } else {
-        if (img_buffer) heap_caps_free(img_buffer);
-        img_buffer = nullptr;
-        lv_obj_add_flag(bg_img, LV_OBJ_FLAG_HIDDEN);
+        Serial.println("[FrameUI] No image data found, showing placeholder");
+        if (bg_img) lv_obj_add_flag(bg_img, LV_OBJ_FLAG_HIDDEN);
         if (no_image_cont) lv_obj_clear_flag(no_image_cont, LV_OBJ_FLAG_HIDDEN);
     }
-
-    // 3. Resume and reveal only when ready
-    lvgl_port_resume(); 
     
-    // Force a single full refresh while still dark
-    lvgl_port_lock(-1);
+    // Force a full screen redraw while backlight is still off
     lv_obj_invalidate(lv_scr_act());
     lv_refr_now(nullptr); 
     lvgl_port_unlock();
 
-    // Brief delay to allow DMA to push the first 'clean' frame
-    delay(100);
+    // Brief delay for the display driver to catch up
+    delay(150);
 
-    // Finally turn on the lights
+    // RESTORE LIGHTS - This is critical, we do it regardless of success
     if (board && board->getBacklight()) {
         board->getBacklight()->on();
+        Serial.println("[FrameUI] Backlight restored");
     }
+    
+    Serial.println("<<< [FrameUI] loadStoredImage DONE");
 }
 
 void FrameUI::showImage() {
