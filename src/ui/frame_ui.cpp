@@ -107,7 +107,7 @@ void FrameUI::create() {
 
     // Settings Menu - Premium Look
     settings_menu = lv_obj_create(main_cont);
-    lv_obj_set_size(settings_menu, 460, 400);
+    lv_obj_set_size(settings_menu, 460, 440);
     lv_obj_align(settings_menu, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_bg_color(settings_menu, lv_color_hex(0x1a1a2e), 0);
     lv_obj_set_style_bg_opa(settings_menu, 245, 0);
@@ -142,13 +142,14 @@ void FrameUI::create() {
 
     // Flex container for buttons
     lv_obj_t* btn_cont = lv_obj_create(settings_menu);
-    lv_obj_set_size(btn_cont, 400, 300);
-    lv_obj_align(btn_cont, LV_ALIGN_TOP_MID, 0, 80);
+    lv_obj_set_size(btn_cont, 400, 340);
+    lv_obj_align(btn_cont, LV_ALIGN_TOP_MID, 0, 75);
     lv_obj_set_style_bg_opa(btn_cont, 0, 0);
     lv_obj_set_style_border_width(btn_cont, 0, 0);
+    lv_obj_set_style_pad_all(btn_cont, 0, 0); // Clear default padding
     lv_obj_set_flex_flow(btn_cont, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(btn_cont, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-    lv_obj_set_style_pad_row(btn_cont, 20, 0);
+    lv_obj_set_style_pad_row(btn_cont, 15, 0); // Tighter spacing to fit all
 
     // 1. Clear Image Button
     lv_obj_t* clear_btn = lv_btn_create(btn_cont);
