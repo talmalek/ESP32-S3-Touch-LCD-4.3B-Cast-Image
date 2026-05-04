@@ -23,13 +23,19 @@ A WiFi-enabled digital picture frame project based on the Waveshare ESP32-S3-Tou
 5. **Professional UI**:
    - **Centered Status**: Clean "No Image Loaded" screen with large fonts and clear connection instructions.
    - **Settings Menu**: Accessible via gear icon with professional flex-aligned layout.
-   - **Navigation**: "Back to Frame" button for intuitive menu control.
+   - **24H Flip-Clock**: Toggleable overlay that displays a premium animated clock on top of the frame.
+   - **Navigation**: "X" close button and intuitive toggle controls.
 6. **Robust Image Upload**:
    - Automatic LVGL task suspension during write to prevent flash/DMA bus contention.
    - Filesystem remounting to ensure data visibility.
 7. **Clean Boot (Anti-Flash)**:
    - Synchronized backlight control to prevent the common "white screen" flash during startup.
    - Display remains dark until the first frame is ready to render.
+8. **24H Flip-Clock Overlay**:
+   - Premium animated flip-clock that can be toggled on top of the image.
+   - Professional "retro" look with custom-designed digits.
+9. **NTP Time Sync**:
+   - Automatic time synchronization for Israel (IST/IDT) with full DST support.
 
 ## Build & Flash
 

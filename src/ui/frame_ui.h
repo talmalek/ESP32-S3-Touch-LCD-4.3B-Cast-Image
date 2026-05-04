@@ -20,4 +20,11 @@ public:
     static void onRestoreDefaults();
     static void loop();
     static void queueImageLoad();
+    
+    // Clock
+    static void toggleClock();
+    static bool isClockEnabled();
+
+private:
+    static bool clock_enabled;
 };

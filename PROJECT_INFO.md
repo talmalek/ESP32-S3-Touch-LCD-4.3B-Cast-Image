@@ -27,6 +27,7 @@
 
 **4. frame_ui.cpp**
 - Renders the image from PSRAM using an `lv_img_dsc_t`.
+- **Clock Overlay**: Managed via `FlipClock` class, providing a transparent animated layer.
 - **Thread Safety**: Uses `lvgl_port_lock()`/`unlock()` for all UI manipulations.
 - **State Management**: Seamlessly toggles between the "No Image" instructional view and the active picture frame.
 

@@ -121,6 +121,13 @@ void setup() {
         StorageManager::saveWifi(WiFi.SSID(), WiFi.psk());
     }
     
+    if (wifi_connected) {
+        Serial.println("Syncing time...");
+        configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+        setenv("TZ", "IST-2IDT,M3.4.4/26,M10.5.0", 1);
+        tzset();
+    }
+    
     Serial.println("WiFi OK: " + WiFi.localIP().toString());
     
     delay(500);

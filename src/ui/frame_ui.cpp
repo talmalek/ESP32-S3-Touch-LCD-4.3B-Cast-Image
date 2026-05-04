@@ -1,5 +1,6 @@
 #include "frame_ui.h"
 #include "storage_manager.h"
+#include "flip_clock.h"
 #include "../include/display_utils.h"
 #include "../lvgl_v8_port.h"
 #include <ESP.h>
@@ -12,11 +13,15 @@ static lv_obj_t* no_image_cont = nullptr;
 static lv_obj_t* info_label = nullptr;
 static lv_obj_t* ip_label = nullptr;
 static lv_obj_t* settings_menu = nullptr;
+static lv_obj_t* clock_cont = nullptr;
+static lv_obj_t* clock_toggle_lbl = nullptr;
 static lv_obj_t* bg_img = nullptr;
 static bool settings_open = false;
 static char server_ip[16] = "";
 static uint8_t* img_buffer = nullptr;
 static bool imageLoadQueued = false;
+
+bool FrameUI::clock_enabled = false;
 
 static lv_img_dsc_t img_dsc = {
     .header = {
@@ -70,6 +75,16 @@ void FrameUI::create() {
     lv_obj_add_flag(bg_img, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(main_cont, LV_OBJ_FLAG_CLICKABLE);
 
+    // Clock Container (Overlay)
+    clock_cont = lv_obj_create(main_cont);
+    lv_obj_set_size(clock_cont, 800, 480);
+    lv_obj_set_pos(clock_cont, 0, 0);
+    lv_obj_set_style_bg_opa(clock_cont, 0, 0);
+    lv_obj_set_style_border_width(clock_cont, 0, 0);
+    lv_obj_add_flag(clock_cont, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(clock_cont, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
+    FlipClock::create(clock_cont);
+
     // Settings Menu - Premium Look
     settings_menu = lv_obj_create(main_cont);
     lv_obj_set_size(settings_menu, 460, 400);
@@ -83,11 +98,23 @@ void FrameUI::create() {
     lv_obj_add_flag(settings_menu, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(settings_menu, LV_OBJ_FLAG_SCROLLABLE);
 
-    lv_obj_t* menu_title = lv_label_create(settings_menu);
-    lv_label_set_text(menu_title, "Settings");
-    lv_obj_set_style_text_color(menu_title, lv_color_hex(0x4ecdc4), 0);
-    lv_obj_set_style_text_font(menu_title, &lv_font_montserrat_32, 0);
     lv_obj_align(menu_title, LV_ALIGN_TOP_MID, 0, 25);
+
+    // Close button (X) for settings
+    lv_obj_t* x_btn = lv_btn_create(settings_menu);
+    lv_obj_set_size(x_btn, 40, 40);
+    lv_obj_align(x_btn, LV_ALIGN_TOP_RIGHT, -15, 15);
+    lv_obj_set_style_bg_opa(x_btn, 0, 0);
+    lv_obj_set_style_shadow_opa(x_btn, 0, 0);
+    lv_obj_add_event_cb(x_btn, [](lv_event_t* e) {
+        FrameUI::hideSettingsMenu();
+    }, LV_EVENT_CLICKED, nullptr);
+    
+    lv_obj_t* x_lbl = lv_label_create(x_btn);
+    lv_label_set_text(x_lbl, LV_SYMBOL_CLOSE);
+    lv_obj_set_style_text_color(x_lbl, lv_color_hex(0x888888), 0);
+    lv_obj_set_style_text_font(x_lbl, &lv_font_montserrat_24, 0);
+    lv_obj_center(x_lbl);
 
     // Flex container for buttons
     lv_obj_t* btn_cont = lv_obj_create(settings_menu);
@@ -130,20 +157,20 @@ void FrameUI::create() {
     lv_obj_set_style_text_font(reset_lbl, &lv_font_montserrat_24, 0);
     lv_obj_align(reset_lbl, LV_ALIGN_CENTER, 0, 0);
 
-    // 3. Close Button
-    lv_obj_t* close_btn = lv_btn_create(btn_cont);
-    lv_obj_set_size(close_btn, 320, 60);
-    lv_obj_set_style_bg_color(close_btn, lv_color_hex(0x3d3d5c), 0);
-    lv_obj_set_style_radius(close_btn, 16, 0);
-    lv_obj_add_event_cb(close_btn, [](lv_event_t* e) {
-        FrameUI::hideSettingsMenu();
+    // 3. Clock Toggle Button (Instead of Back to Frame)
+    lv_obj_t* clock_btn = lv_btn_create(btn_cont);
+    lv_obj_set_size(clock_btn, 320, 60);
+    lv_obj_set_style_bg_color(clock_btn, lv_color_hex(0x3d3d5c), 0);
+    lv_obj_set_style_radius(clock_btn, 16, 0);
+    lv_obj_add_event_cb(clock_btn, [](lv_event_t* e) {
+        FrameUI::toggleClock();
     }, LV_EVENT_CLICKED, nullptr);
     
-    lv_obj_t* close_lbl = lv_label_create(close_btn);
-    lv_label_set_text(close_lbl, "Back to Frame");
-    lv_obj_set_style_text_color(close_lbl, lv_color_hex(0xffffff), 0);
-    lv_obj_set_style_text_font(close_lbl, &lv_font_montserrat_20, 0);
-    lv_obj_align(close_lbl, LV_ALIGN_CENTER, 0, 0);
+    clock_toggle_lbl = lv_label_create(clock_btn);
+    lv_label_set_text(clock_toggle_lbl, "24H Clock: OFF");
+    lv_obj_set_style_text_color(clock_toggle_lbl, lv_color_hex(0xffffff), 0);
+    lv_obj_set_style_text_font(clock_toggle_lbl, &lv_font_montserrat_24, 0);
+    lv_obj_align(clock_toggle_lbl, LV_ALIGN_CENTER, 0, 0);
 
     // Toggle settings event on screen click
     lv_event_cb_t toggle_settings = [](lv_event_t* e) {
@@ -270,11 +297,36 @@ void FrameUI::onRestoreDefaults() {
     ESP.restart();
 }
 
-void FrameUI::queueImageLoad() {
-    imageLoadQueued = true;
+void FrameUI::toggleClock() {
+    clock_enabled = !clock_enabled;
+    if (clock_toggle_lbl) {
+        lv_label_set_text(clock_toggle_lbl, clock_enabled ? "24H Clock: ON" : "24H Clock: OFF");
+    }
+    if (clock_cont) {
+        if (clock_enabled) {
+            lv_obj_clear_flag(clock_cont, LV_OBJ_FLAG_HIDDEN);
+            FlipClock::update_time();
+        } else {
+            lv_obj_add_flag(clock_cont, LV_OBJ_FLAG_HIDDEN);
+        }
+    }
+}
+
+bool FrameUI::isClockEnabled() {
+    return clock_enabled;
 }
 
 void FrameUI::loop() {
+    if (clock_enabled) {
+        static uint32_t last_tick = 0;
+        if (lv_tick_elaps(last_tick) > 1000) {
+            last_tick = lv_tick_get();
+            lvgl_port_lock(-1);
+            FlipClock::update_time();
+            lvgl_port_unlock();
+        }
+    }
+
     if (!imageLoadQueued) return;
     imageLoadQueued = false;
     
