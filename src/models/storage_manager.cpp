@@ -60,12 +60,6 @@ void StorageManager::clearImage() {
     if (LittleFS.exists("/image.bin")) {
         LittleFS.remove("/image.bin");
     }
-    if (LittleFS.exists("/image.jpg")) {
-        LittleFS.remove("/image.jpg");
-    }
-    if (LittleFS.exists("/image.png")) {
-        LittleFS.remove("/image.png");
-    }
 }
 
 uint8_t* StorageManager::readImageToPSRAM(size_t* outLen) {

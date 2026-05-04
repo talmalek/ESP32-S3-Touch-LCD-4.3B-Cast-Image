@@ -20,17 +20,14 @@ static inline void ensureDisplayReady() {
 }
 
 static inline void ensureFileReady() {
-    for (int i = 0; i < 20; i++) {
-        delay(20);
-        yield();
-    }
+    // Brief delay to ensure filesystem is settled
+    delay(50);
+    yield();
     
     if (LittleFS.exists("/image.bin")) {
         File f = LittleFS.open("/image.bin", FILE_READ);
         if (f) {
-            size_t size = f.size();
             f.close();
-            Serial.printf("File ready: %d bytes\n", size);
             delay(50);
             yield();
         }

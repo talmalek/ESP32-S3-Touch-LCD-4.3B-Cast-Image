@@ -10,7 +10,6 @@ extern esp_panel::drivers::LCD* getLcd();
 static lv_obj_t* main_cont = nullptr;
 static lv_obj_t* info_label = nullptr;
 static lv_obj_t* ip_label = nullptr;
-static lv_obj_t* settings_btn = nullptr;
 static lv_obj_t* settings_menu = nullptr;
 static lv_obj_t* bg_img = nullptr;
 static bool settings_open = false;
@@ -123,11 +122,7 @@ void FrameUI::create() {
 
     lv_scr_load(main_cont);
     
-    ensureDisplayReady();
-    
     loadStoredImage();
-    
-    ensureDisplayReady();
 }
 
 void FrameUI::showUploading() {
@@ -269,12 +264,7 @@ void FrameUI::loop() {
     if (!imageLoadQueued) return;
     imageLoadQueued = false;
     
-    ensureDisplayReady();
-    ensureFileReady();
-    
     lvgl_port_lock(-1);
     loadStoredImage();
     lvgl_port_unlock();
-    
-    ensureDisplayReady();
 }
