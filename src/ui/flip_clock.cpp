@@ -89,6 +89,13 @@ void FlipClock::create(lv_obj_t* parent) {
     img5 = lv_gif_create(cont_clk);
     img6 = lv_gif_create(cont_clk);
 
+    lv_obj_clear_flag(img1, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(img2, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(img3, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(img4, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(img5, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(img6, LV_OBJ_FLAG_CLICKABLE);
+
     // Initialize all to "0" (9→0 transition frozen)
     lv_gif_set_src(img1, set_anim_src(9));
     lv_gif_set_src(img2, set_anim_src(9));
@@ -160,6 +167,7 @@ void FlipClock::create(lv_obj_t* parent) {
     lv_obj_set_width(label_hours, clock_group_w);
     lv_obj_set_style_text_align(label_hours, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_align(label_hours, LV_ALIGN_TOP_LEFT, clock_visual_left, 0);
+    lv_obj_clear_flag(label_hours, LV_OBJ_FLAG_CLICKABLE);
 
     lv_obj_t *label_minutes = lv_label_create(cont_clk);
     lv_obj_add_style(label_minutes, &style_label, 0);
@@ -168,6 +176,7 @@ void FlipClock::create(lv_obj_t* parent) {
     lv_obj_set_style_text_align(label_minutes, LV_TEXT_ALIGN_CENTER, 0);
     int mm_left = clock_visual_left + clock_group_w + gap_group;
     lv_obj_align(label_minutes, LV_ALIGN_TOP_LEFT, mm_left, 0);
+    lv_obj_clear_flag(label_minutes, LV_OBJ_FLAG_CLICKABLE);
 
     lv_obj_t *label_seconds = lv_label_create(cont_clk);
     lv_obj_add_style(label_seconds, &style_label, 0);
@@ -176,6 +185,7 @@ void FlipClock::create(lv_obj_t* parent) {
     lv_obj_set_style_text_align(label_seconds, LV_TEXT_ALIGN_CENTER, 0);
     int ss_left = clock_visual_left + 2 * (clock_group_w + gap_group);
     lv_obj_align(label_seconds, LV_ALIGN_TOP_LEFT, ss_left, 0);
+    lv_obj_clear_flag(label_seconds, LV_OBJ_FLAG_CLICKABLE);
 
     // Date label below clock
     date_label = lv_label_create(parent);
@@ -183,6 +193,7 @@ void FlipClock::create(lv_obj_t* parent) {
     lv_obj_set_style_text_color(date_label, lv_color_hex(0xCCCCCC), 0);
     lv_obj_set_style_text_font(date_label, &lv_font_montserrat_24, 0);
     lv_obj_align(date_label, LV_ALIGN_CENTER, 0, 100);
+    lv_obj_clear_flag(date_label, LV_OBJ_FLAG_CLICKABLE);
 
     // Initial time
     update_time();

@@ -13,7 +13,9 @@ static lv_obj_t* no_image_cont = nullptr;
 static lv_obj_t* info_label = nullptr;
 static lv_obj_t* ip_label = nullptr;
 static lv_obj_t* settings_menu = nullptr;
+static lv_obj_t* settings_overlay = nullptr;
 static lv_obj_t* clock_cont = nullptr;
+static lv_obj_t* clock_btn = nullptr;
 static lv_obj_t* clock_toggle_lbl = nullptr;
 static lv_obj_t* bg_img = nullptr;
 static bool settings_open = false;
@@ -84,6 +86,17 @@ void FrameUI::create() {
     lv_obj_add_flag(clock_cont, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(clock_cont, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
     FlipClock::create(clock_cont);
+
+    // Settings Overlay (Transparent layer to catch clicks outside menu)
+    settings_overlay = lv_obj_create(main_cont);
+    lv_obj_set_size(settings_overlay, 800, 480);
+    lv_obj_set_pos(settings_overlay, 0, 0);
+    lv_obj_set_style_bg_opa(settings_overlay, 100, 0); // Slight dim
+    lv_obj_set_style_bg_color(settings_overlay, lv_color_black(), 0);
+    lv_obj_add_flag(settings_overlay, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_event_cb(settings_overlay, [](lv_event_t* e) {
+        FrameUI::hideSettingsMenu();
+    }, LV_EVENT_CLICKED, nullptr);
 
     // Settings Menu - Premium Look
     settings_menu = lv_obj_create(main_cont);
@@ -162,9 +175,9 @@ void FrameUI::create() {
     lv_obj_align(reset_lbl, LV_ALIGN_CENTER, 0, 0);
 
     // 3. Clock Toggle Button (Instead of Back to Frame)
-    lv_obj_t* clock_btn = lv_btn_create(btn_cont);
+    clock_btn = lv_btn_create(btn_cont);
     lv_obj_set_size(clock_btn, 320, 60);
-    lv_obj_set_style_bg_color(clock_btn, lv_color_hex(0x3d3d5c), 0);
+    lv_obj_set_style_bg_color(clock_btn, lv_color_hex(0x000000), 0); // Default Black
     lv_obj_set_style_radius(clock_btn, 16, 0);
     lv_obj_add_event_cb(clock_btn, [](lv_event_t* e) {
         FrameUI::toggleClock();
@@ -178,15 +191,13 @@ void FrameUI::create() {
 
     // Toggle settings event on screen click
     lv_event_cb_t toggle_settings = [](lv_event_t* e) {
-        lv_obj_t * target = lv_event_get_target(e);
-        if (target != main_cont && target != bg_img) return;
+        if (settings_open) return; // Handled by overlay when open
         
-        if (settings_open) {
-            FrameUI::hideSettingsMenu();
-        } else {
-            FrameUI::showSettingsMenu();
-            lv_obj_move_foreground(settings_menu);
-        }
+        lv_obj_t * target = lv_event_get_target(e);
+        // Allow clicks on background, instructions, or the clock overlay itself to open settings
+        if (target != main_cont && target != bg_img && target != clock_cont && target != no_image_cont) return;
+        
+        FrameUI::showSettingsMenu();
     };
     lv_obj_add_event_cb(main_cont, toggle_settings, LV_EVENT_CLICKED, nullptr);
 
@@ -278,13 +289,26 @@ void FrameUI::setServerIP(const char* ip) {
 }
 
 void FrameUI::showSettingsMenu() {
-    lv_obj_clear_flag(settings_menu, LV_OBJ_FLAG_HIDDEN);
+    lvgl_port_lock(-1);
+    if (settings_menu) {
+        lv_obj_clear_flag(settings_menu, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_move_foreground(settings_menu);
+    }
+    if (settings_overlay) {
+        lv_obj_clear_flag(settings_overlay, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_move_foreground(settings_overlay);
+        lv_obj_move_foreground(settings_menu);
+    }
     settings_open = true;
+    lvgl_port_unlock();
 }
 
 void FrameUI::hideSettingsMenu() {
-    lv_obj_add_flag(settings_menu, LV_OBJ_FLAG_HIDDEN);
+    lvgl_port_lock(-1);
+    if (settings_menu) lv_obj_add_flag(settings_menu, LV_OBJ_FLAG_HIDDEN);
+    if (settings_overlay) lv_obj_add_flag(settings_overlay, LV_OBJ_FLAG_HIDDEN);
     settings_open = false;
+    lvgl_port_unlock();
 }
 
 bool FrameUI::isSettingsMenuVisible() { return settings_open; }
@@ -307,8 +331,10 @@ void FrameUI::queueImageLoad() {
 
 void FrameUI::toggleClock() {
     clock_enabled = !clock_enabled;
-    if (clock_toggle_lbl) {
+    if (clock_toggle_lbl && clock_btn) {
         lv_label_set_text(clock_toggle_lbl, clock_enabled ? "24H Clock: ON" : "24H Clock: OFF");
+        // Color on when active, black when off
+        lv_obj_set_style_bg_color(clock_btn, clock_enabled ? lv_color_hex(0x4ecdc4) : lv_color_hex(0x000000), 0);
     }
     if (clock_cont) {
         if (clock_enabled) {
