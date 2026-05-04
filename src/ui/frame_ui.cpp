@@ -56,67 +56,92 @@ void FrameUI::create() {
     lv_obj_add_flag(bg_img, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(main_cont, LV_OBJ_FLAG_CLICKABLE);
 
+    // Settings Menu - Premium Look
     settings_menu = lv_obj_create(main_cont);
-    lv_obj_set_size(settings_menu, 420, 360);
+    lv_obj_set_size(settings_menu, 460, 400);
     lv_obj_align(settings_menu, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_bg_color(settings_menu, lv_color_hex(0x1a1a2e), 0);
-    lv_obj_set_style_bg_opa(settings_menu, LV_OPA_COVER, 0);
-    lv_obj_set_style_radius(settings_menu, 24, 0);
+    lv_obj_set_style_bg_opa(settings_menu, 245, 0);
+    lv_obj_set_style_radius(settings_menu, 32, 0);
     lv_obj_set_style_border_color(settings_menu, lv_color_hex(0x4ecdc4), 0);
-    lv_obj_set_style_border_width(settings_menu, 3, 0);
+    lv_obj_set_style_border_width(settings_menu, 2, 0);
     lv_obj_set_style_pad_all(settings_menu, 0, 0);
     lv_obj_add_flag(settings_menu, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(settings_menu, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_clear_flag(settings_menu, LV_OBJ_FLAG_SCROLLABLE);
 
     lv_obj_t* menu_title = lv_label_create(settings_menu);
     lv_label_set_text(menu_title, "Settings");
     lv_obj_set_style_text_color(menu_title, lv_color_hex(0x4ecdc4), 0);
     lv_obj_set_style_text_font(menu_title, &lv_font_montserrat_32, 0);
-    lv_obj_align(menu_title, LV_ALIGN_TOP_MID, 0, 20);
+    lv_obj_align(menu_title, LV_ALIGN_TOP_MID, 0, 25);
 
-    lv_obj_t* clear_btn = lv_btn_create(settings_menu);
-    lv_obj_set_size(clear_btn, 280, 55);
-    lv_obj_align(clear_btn, LV_ALIGN_CENTER, 0, -80);
-    lv_obj_set_style_bg_color(clear_btn, lv_color_hex(0x44a08d), 0);
-    lv_obj_set_style_radius(clear_btn, 12, 0);
-    lv_event_cb_t clear_cb = [](lv_event_t* e) {
+    // Flex container for buttons
+    lv_obj_t* btn_cont = lv_obj_create(settings_menu);
+    lv_obj_set_size(btn_cont, 400, 300);
+    lv_obj_align(btn_cont, LV_ALIGN_TOP_MID, 0, 80);
+    lv_obj_set_style_bg_opa(btn_cont, 0, 0);
+    lv_obj_set_style_border_width(btn_cont, 0, 0);
+    lv_obj_set_flex_flow(btn_cont, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(btn_cont, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_pad_row(btn_cont, 20, 0);
+
+    // 1. Clear Image Button
+    lv_obj_t* clear_btn = lv_btn_create(btn_cont);
+    lv_obj_set_size(clear_btn, 320, 60);
+    lv_obj_set_style_bg_color(clear_btn, lv_color_hex(0x4ecdc4), 0);
+    lv_obj_set_style_radius(clear_btn, 16, 0);
+    lv_obj_add_event_cb(clear_btn, [](lv_event_t* e) {
         FrameUI::clearImage();
-    };
-    lv_obj_add_event_cb(clear_btn, clear_cb, LV_EVENT_CLICKED, nullptr);
+        FrameUI::hideSettingsMenu();
+    }, LV_EVENT_CLICKED, nullptr);
     
     lv_obj_t* clear_lbl = lv_label_create(clear_btn);
     lv_label_set_text(clear_lbl, "Clear Image");
-    lv_obj_set_style_text_color(clear_lbl, lv_color_hex(0xffffff), 0);
+    lv_obj_set_style_text_color(clear_lbl, lv_color_hex(0x1a1a2e), 0);
     lv_obj_set_style_text_font(clear_lbl, &lv_font_montserrat_24, 0);
     lv_obj_align(clear_lbl, LV_ALIGN_CENTER, 0, 0);
 
-    lv_obj_t* reset_btn = lv_btn_create(settings_menu);
-    lv_obj_set_size(reset_btn, 280, 55);
-    lv_obj_align(reset_btn, LV_ALIGN_CENTER, 0, 80);
-    lv_obj_set_style_bg_color(reset_btn, lv_color_hex(0x44a08d), 0);
-    lv_obj_set_style_radius(reset_btn, 12, 0);
-    lv_event_cb_t reset_cb = [](lv_event_t* e) {
+    // 2. Restore Defaults Button
+    lv_obj_t* reset_btn = lv_btn_create(btn_cont);
+    lv_obj_set_size(reset_btn, 320, 60);
+    lv_obj_set_style_bg_color(reset_btn, lv_color_hex(0xff6b6b), 0);
+    lv_obj_set_style_radius(reset_btn, 16, 0);
+    lv_obj_add_event_cb(reset_btn, [](lv_event_t* e) {
         FrameUI::onRestoreDefaults();
-    };
-    lv_obj_add_event_cb(reset_btn, reset_cb, LV_EVENT_CLICKED, nullptr);
+    }, LV_EVENT_CLICKED, nullptr);
     
     lv_obj_t* reset_lbl = lv_label_create(reset_btn);
-    lv_label_set_text(reset_lbl, "Reset All");
+    lv_label_set_text(reset_lbl, "Factory Reset");
     lv_obj_set_style_text_color(reset_lbl, lv_color_hex(0xffffff), 0);
     lv_obj_set_style_text_font(reset_lbl, &lv_font_montserrat_24, 0);
     lv_obj_align(reset_lbl, LV_ALIGN_CENTER, 0, 0);
 
+    // 3. Close Button
+    lv_obj_t* close_btn = lv_btn_create(btn_cont);
+    lv_obj_set_size(close_btn, 320, 60);
+    lv_obj_set_style_bg_color(close_btn, lv_color_hex(0x3d3d5c), 0);
+    lv_obj_set_style_radius(close_btn, 16, 0);
+    lv_obj_add_event_cb(close_btn, [](lv_event_t* e) {
+        FrameUI::hideSettingsMenu();
+    }, LV_EVENT_CLICKED, nullptr);
+    
+    lv_obj_t* close_lbl = lv_label_create(close_btn);
+    lv_label_set_text(close_lbl, "Back to Frame");
+    lv_obj_set_style_text_color(close_lbl, lv_color_hex(0xffffff), 0);
+    lv_obj_set_style_text_font(close_lbl, &lv_font_montserrat_20, 0);
+    lv_obj_align(close_lbl, LV_ALIGN_CENTER, 0, 0);
+
+    // Toggle settings event on screen click
     lv_event_cb_t toggle_settings = [](lv_event_t* e) {
         lv_obj_t * target = lv_event_get_target(e);
         if (target != main_cont && target != bg_img) return;
         
         if (settings_open) {
-            lv_obj_add_flag(settings_menu, LV_OBJ_FLAG_HIDDEN);
+            FrameUI::hideSettingsMenu();
         } else {
-            lv_obj_clear_flag(settings_menu, LV_OBJ_FLAG_HIDDEN);
+            FrameUI::showSettingsMenu();
             lv_obj_move_foreground(settings_menu);
         }
-        settings_open = !settings_open;
     };
     lv_obj_add_event_cb(main_cont, toggle_settings, LV_EVENT_CLICKED, nullptr);
 
