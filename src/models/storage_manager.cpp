@@ -87,21 +87,8 @@ uint8_t* StorageManager::readImageToPSRAM(size_t* outLen) {
         return nullptr;
     }
     
-    // Read in small chunks to avoid PSRAM bus starvation (prevents screen shift)
-    size_t bytesRead = 0;
-    const size_t chunkSize = 4096; // 4KB chunks
-    while (bytesRead < size) {
-        size_t toRead = std::min(chunkSize, size - bytesRead);
-        file.read(buffer + bytesRead, toRead);
-        bytesRead += toRead;
-        delay(1); // Explicit delay to give LCD DMA priority
-    }
+    file.read(buffer, size);
     file.close();
-    
-    // Safety check: verify size is a multiple of a row for 800px width
-    if (size % (800 * 2) != 0) {
-        Serial.printf("[Storage] WARNING: File size %d is not a multiple of 1600!\n", size);
-    }
     
     return buffer;
 }
