@@ -123,6 +123,14 @@ static const char* HTML_PAGE = R"raw(<!DOCTYPE html>
         </div>
         
         <button class="btn" id="uploadBtn" style="display: none;">Upload Image</button>
+
+        <div style="margin: 30px 0; border-top: 1px solid #3d3d5c;"></div>
+        
+        <p class="subtitle">Or choose a solid background color</p>
+        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px;">
+            <input type="color" id="solidColor" value="#1a1a2e" style="flex: 0 0 80px; height: 50px; cursor: pointer; background: none; border: 2px solid #4ecdc4; border-radius: 12px; padding: 4px;">
+            <button class="btn" id="applyColorBtn" style="margin-top: 0; flex: 1;">Apply Solid Color</button>
+        </div>
         
         <div class="status" id="status"></div>
     </div>
@@ -175,37 +183,44 @@ static const char* HTML_PAGE = R"raw(<!DOCTYPE html>
                 const outWidth = 800;
                 const outHeight = 480;
 
-                const canvas = cropper.getCroppedCanvas({
-                    width: outWidth,
-                    height: outHeight,
-                    fillColor: '#000000'
-                });
-                
-                // Get pixels and convert to RGB565 (Little Endian)
-                const imgData = canvas.getContext('2d').getImageData(0, 0, outWidth, outHeight).data;
-                const rgb565 = new Uint8Array(outWidth * outHeight * 2);
-                
-                for (let i = 0, j = 0; i < imgData.length; i += 4, j += 2) {
-                    const r = imgData[i] >> 3;
-                    const g = imgData[i+1] >> 2;
-                    const b = imgData[i+2] >> 3;
-                    const rgb = (r << 11) | (g << 5) | b;
-                    
-                    rgb565[j] = rgb & 0xFF;
-                    rgb565[j+1] = (rgb >> 8) & 0xFF;
-                }
+        function convertToRGB565(imgData) {
+            const rgb565 = new Uint8Array(800 * 480 * 2);
+            for (let i = 0, j = 0; i < imgData.length; i += 4, j += 2) {
+                const r = imgData[i] >> 3;
+                const g = imgData[i+1] >> 2;
+                const b = imgData[i+2] >> 3;
+                const rgb = (r << 11) | (g << 5) | b;
+                rgb565[j] = rgb & 0xFF;
+                rgb565[j+1] = (rgb >> 8) & 0xFF;
+            }
+            return rgb565;
+        }
+
+        async function uploadBinary(uint8Array) {
+            const blob = new Blob([uint8Array], { type: 'application/octet-stream' });
+            const formData = new FormData();
+            formData.append('image', blob, 'image.bin');
+            
+            const resp = await fetch('/upload', { method: 'POST', body: formData });
+            return await resp.json();
+        }
+
+        uploadBtn.addEventListener('click', async () => {
+            if (!cropper) return;
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Processing...';
+            
+            try {
+                const canvas = cropper.getCroppedCanvas({ width: 800, height: 480, fillColor: '#000000' });
+                const imgData = canvas.getContext('2d').getImageData(0, 0, 800, 480).data;
+                const rgb565 = convertToRGB565(imgData);
                 
                 uploadBtn.textContent = 'Uploading...';
-                const blob = new Blob([rgb565], { type: 'application/octet-stream' });
-                const formData = new FormData();
-                formData.append('image', blob, 'image.bin');
+                const result = await uploadBinary(rgb565);
                 
-                const resp = await fetch('/upload', { method: 'POST', body: formData });
-                const result = await resp.json();
                 if (result.success) {
                     showStatus('Image uploaded! Display updated.', true);
                     setTimeout(() => {
-                        uploadBtn.textContent = 'Upload Image';
                         uploadBtn.style.display = 'none';
                         preview.classList.remove('show');
                         uploadArea.style.display = 'block';
@@ -215,13 +230,46 @@ static const char* HTML_PAGE = R"raw(<!DOCTYPE html>
                     }, 2000);
                 } else {
                     showStatus('Error: ' + result.error, false);
-                    uploadBtn.disabled = false;
                 }
             } catch(e) {
                 showStatus('Error: ' + e.message, false);
+            } finally {
                 uploadBtn.disabled = false;
+                uploadBtn.textContent = 'Upload Image';
             }
-            uploadBtn.textContent = 'Upload Image';
+        });
+
+        const solidColorInput = document.getElementById('solidColor');
+        const applyColorBtn = document.getElementById('applyColorBtn');
+
+        applyColorBtn.addEventListener('click', async () => {
+            applyColorBtn.disabled = true;
+            const originalText = applyColorBtn.textContent;
+            applyColorBtn.textContent = 'Applying...';
+            
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = 800;
+                canvas.height = 480;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = solidColorInput.value;
+                ctx.fillRect(0, 0, 800, 480);
+                
+                const imgData = ctx.getImageData(0, 0, 800, 480).data;
+                const rgb565 = convertToRGB565(imgData);
+                
+                const result = await uploadBinary(rgb565);
+                if (result.success) {
+                    showStatus('Solid color background applied!', true);
+                } else {
+                    showStatus('Failed to apply color', false);
+                }
+            } catch (e) {
+                showStatus('Error: ' + e.message, false);
+            } finally {
+                applyColorBtn.disabled = false;
+                applyColorBtn.textContent = originalText;
+            }
         });
         
         function showStatus(msg, success) {
