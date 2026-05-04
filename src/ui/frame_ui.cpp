@@ -98,6 +98,10 @@ void FrameUI::create() {
     lv_obj_add_flag(settings_menu, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(settings_menu, LV_OBJ_FLAG_SCROLLABLE);
 
+    lv_obj_t* menu_title = lv_label_create(settings_menu);
+    lv_label_set_text(menu_title, "Settings");
+    lv_obj_set_style_text_color(menu_title, lv_color_hex(0x4ecdc4), 0);
+    lv_obj_set_style_text_font(menu_title, &lv_font_montserrat_32, 0);
     lv_obj_align(menu_title, LV_ALIGN_TOP_MID, 0, 25);
 
     // Close button (X) for settings
@@ -295,6 +299,10 @@ void FrameUI::onRestoreDefaults() {
     StorageManager::clearImage();
     delay(500);
     ESP.restart();
+}
+
+void FrameUI::queueImageLoad() {
+    imageLoadQueued = true;
 }
 
 void FrameUI::toggleClock() {
