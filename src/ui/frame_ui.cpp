@@ -22,8 +22,8 @@ static lv_obj_t* bg_img = nullptr;
 static bool settings_open = false;
 static char server_ip[16] = "";
 static uint8_t* img_buffer = nullptr;
-static bool imageLoadQueued = false;
-static uint32_t imageLoadQueuedTime = 0;
+static volatile bool imageLoadQueued = false;
+static volatile uint32_t imageLoadQueuedTime = 0;
 
 bool FrameUI::clock_enabled = false;
 
@@ -243,18 +243,10 @@ void FrameUI::showUploading() {
 }
 
 void FrameUI::loadStoredImage() {
-    // 1. Prepare system for heavy load
-    // Ensure screen is logically black/hidden before we start
-    lvgl_port_lock(-1);
-    if (bg_img) lv_obj_add_flag(bg_img, LV_OBJ_FLAG_HIDDEN);
-    if (no_image_cont) lv_obj_add_flag(no_image_cont, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_invalidate(lv_scr_act());
-    lvgl_port_unlock();
-
+    Serial.println("Loading image from storage...");
     lvgl_port_stop(); // Stop LVGL task to prevent PSRAM bus contention
     
     // Ensure backlight is OFF during the 'sausage making'
-    esp_panel::drivers::LCD* lcd = getLcd();
     if (board && board->getBacklight()) {
         board->getBacklight()->off();
     }
@@ -268,7 +260,9 @@ void FrameUI::loadStoredImage() {
     }
     
     size_t len = 0;
+    Serial.println("Reading file to PSRAM...");
     img_buffer = StorageManager::readImageToPSRAM(&len);
+    Serial.printf("Read %d bytes\n", len);
     
     // Images are always 800px wide (fixed by web client crop tool)
     uint32_t width = 800;
@@ -434,7 +428,7 @@ void FrameUI::loop() {
     if (!imageLoadQueued) return;
     
     // Wait for system to settle after heavy flash write
-    if (millis() - imageLoadQueuedTime < 1500) return; // Increased to 1.5s
+    if (millis() - imageLoadQueuedTime < 500) return; 
     
     imageLoadQueued = false;
     
