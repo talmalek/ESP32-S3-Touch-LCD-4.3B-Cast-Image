@@ -1,7 +1,7 @@
 # Digital Picture Frame - ESP32-S3-Touch-LCD-4.3B
 
 ## Overview
-A WiFi-enabled digital picture frame project based on the Waveshare ESP32-S3-Touch-LCD-4.3B display (800x480 resolution). This project features a built-in web-based cropping tool and supports scrolling for panoramic or tall images.
+A WiFi-enabled digital picture frame project based on the Waveshare ESP32-S3-Touch-LCD-4.3B display (800x480 resolution). This project features a built-in web-based cropping tool and a clean, professional UI optimized for high-resolution static images.
 
 ## Hardware
 - **Board**: Waveshare ESP32-S3-Touch-LCD-4.3B
@@ -16,17 +16,20 @@ A WiFi-enabled digital picture frame project based on the Waveshare ESP32-S3-Tou
 3. **Web Server & Cropping Tool**: 
    - Access via `http://<device-ip>`
    - Upload JPG/PNG/BMP
-   - **Built-in Cropper**: Precise 800x480 crop tool.
-   - **Scrolling Mode**: Upload tall/panoramic images with automatic vertical bouncing scroll animation.
+   - **Built-in Cropper**: Precise 800x480 locked aspect ratio crop tool.
 4. **Reliable Storage**: 
    - LittleFS for image persistence.
    - Automatic filesystem repair and reformatting if corruption is detected.
-5. **Settings Menu** (tap gear icon):
-   - **Clear Image**: Removes current image from storage.
-   - **Reset All**: Clears WiFi configuration and image, returning to splash state.
+5. **Professional UI**:
+   - **Centered Status**: Clean "No Image Loaded" screen with large fonts and clear connection instructions.
+   - **Settings Menu**: Accessible via gear icon with professional flex-aligned layout.
+   - **Navigation**: "Back to Frame" button for intuitive menu control.
 6. **Robust Image Upload**:
    - Automatic LVGL task suspension during write to prevent flash/DMA bus contention.
    - Filesystem remounting to ensure data visibility.
+7. **Clean Boot (Anti-Flash)**:
+   - Synchronized backlight control to prevent the common "white screen" flash during startup.
+   - Display remains dark until the first frame is ready to render.
 
 ## Build & Flash
 
@@ -68,8 +71,8 @@ ESP32-S3-Touch-LCD-4.3B - Cast Image/
 ## How It Works
 1. **Initialization**: Mounts storage and initializes the 800x480 display using RGB interface.
 2. **Network**: If no WiFi is saved, creates an AP named "PictureFrame" (pass: 12345678).
-3. **Display**: Once connected, it shows the local IP. You can upload an image from any device on the same network.
-4. **Animation**: If an uploaded image is taller than 480px, the device automatically begins a smooth vertical scroll to showcase the full image.
+3. **Display**: Once connected, it shows the local IP and setup instructions.
+4. **Upload**: Use any device on the same network to crop and upload your image to the frame.
 
 ## Troubleshooting
 - **LittleFS Failures**: The system now automatically reboots and reformats the LittleFS partition if a critical corruption occurs.
