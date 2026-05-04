@@ -19,6 +19,9 @@ public:
     static bool shouldResetToDefaults();
     static void setResetToDefaults();
 
+    static bool getClockEnabled();
+    static void saveClockEnabled(bool enabled);
+
 private:
     static Preferences wifiPrefs;
     static const char* NAMESPACE_WIFI;

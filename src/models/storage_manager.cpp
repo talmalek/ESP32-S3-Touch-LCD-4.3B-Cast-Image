@@ -92,3 +92,11 @@ uint8_t* StorageManager::readImageToPSRAM(size_t* outLen) {
     
     return buffer;
 }
+
+bool StorageManager::getClockEnabled() {
+    return wifiPrefs.getBool("clock_on", false);
+}
+
+void StorageManager::saveClockEnabled(bool enabled) {
+    wifiPrefs.putBool("clock_on", enabled);
+}

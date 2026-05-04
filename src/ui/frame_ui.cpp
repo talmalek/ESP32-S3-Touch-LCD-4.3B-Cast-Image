@@ -39,6 +39,8 @@ static lv_img_dsc_t img_dsc = {
     };
 
 void FrameUI::create() {
+    clock_enabled = StorageManager::getClockEnabled();
+    
     ensureDisplayReady();
     ensureFileReady();
     
@@ -84,8 +86,11 @@ void FrameUI::create() {
     lv_obj_set_pos(clock_cont, 0, 0);
     lv_obj_set_style_bg_opa(clock_cont, 0, 0);
     lv_obj_set_style_border_width(clock_cont, 0, 0);
-    lv_obj_add_flag(clock_cont, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_clear_flag(clock_cont, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
+    if (clock_enabled) {
+        lv_obj_clear_flag(clock_cont, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag(clock_cont, LV_OBJ_FLAG_HIDDEN);
+    }
     FlipClock::create(clock_cont);
 
     // Settings Overlay (Transparent layer to catch clicks outside menu)
@@ -178,14 +183,14 @@ void FrameUI::create() {
     // 3. Clock Toggle Button (Instead of Back to Frame)
     clock_btn = lv_btn_create(btn_cont);
     lv_obj_set_size(clock_btn, 320, 60);
-    lv_obj_set_style_bg_color(clock_btn, lv_color_hex(0x000000), 0); // Default Black
+    lv_obj_set_style_bg_color(clock_btn, clock_enabled ? lv_color_hex(0x4ecdc4) : lv_color_hex(0x000000), 0);
     lv_obj_set_style_radius(clock_btn, 16, 0);
     lv_obj_add_event_cb(clock_btn, [](lv_event_t* e) {
         FrameUI::toggleClock();
     }, LV_EVENT_CLICKED, nullptr);
     
     clock_toggle_lbl = lv_label_create(clock_btn);
-    lv_label_set_text(clock_toggle_lbl, "24H Clock: OFF");
+    lv_label_set_text(clock_toggle_lbl, clock_enabled ? "24H Clock: ON" : "24H Clock: OFF");
     lv_obj_set_style_text_color(clock_toggle_lbl, lv_color_hex(0xffffff), 0);
     lv_obj_set_style_text_font(clock_toggle_lbl, &lv_font_montserrat_24, 0);
     lv_obj_align(clock_toggle_lbl, LV_ALIGN_CENTER, 0, 0);
@@ -349,6 +354,8 @@ void FrameUI::queueImageLoad() {
 
 void FrameUI::toggleClock() {
     clock_enabled = !clock_enabled;
+    StorageManager::saveClockEnabled(clock_enabled);
+    
     if (clock_toggle_lbl && clock_btn) {
         lv_label_set_text(clock_toggle_lbl, clock_enabled ? "24H Clock: ON" : "24H Clock: OFF");
         // Color on when active, black when off
