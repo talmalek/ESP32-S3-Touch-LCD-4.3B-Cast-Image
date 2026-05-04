@@ -174,15 +174,6 @@ static const char* HTML_PAGE = R"raw(<!DOCTYPE html>
             showStatus('Drag the frame to crop the image', true);
         });
         
-        uploadBtn.addEventListener('click', async () => {
-            if (!cropper) return;
-            uploadBtn.disabled = true;
-            uploadBtn.textContent = 'Processing...';
-            
-            try {
-                const outWidth = 800;
-                const outHeight = 480;
-
         function convertToRGB565(imgData) {
             const rgb565 = new Uint8Array(800 * 480 * 2);
             for (let i = 0, j = 0; i < imgData.length; i += 4, j += 2) {
