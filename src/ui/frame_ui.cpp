@@ -49,7 +49,7 @@ void FrameUI::create() {
     lv_obj_set_size(main_cont, 800, 480);
     lv_obj_set_pos(main_cont, 0, 0);
     lv_obj_set_style_bg_color(main_cont, lv_color_hex(0x0F0F1A), 0);
-
+    
     no_image_cont = lv_obj_create(main_cont);
     lv_obj_set_size(no_image_cont, 800, 480);
     lv_obj_set_pos(no_image_cont, 0, 0);

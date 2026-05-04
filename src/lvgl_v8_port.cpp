@@ -394,6 +394,7 @@ static void flush_callback(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t
     lv_disp_flush_ready(drv);
 }
 #endif /* LVGL_PORT_ROTATION_DEGREE */
+#endif /* LVGL_PORT_DIRECT_MODE */
 
 #elif LVGL_PORT_FULL_REFRESH && LVGL_PORT_DISP_BUFFER_NUM == 2
 
@@ -451,8 +452,6 @@ void flush_callback(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color
 
     lv_disp_flush_ready(drv);
 }
-#endif
-
 IRAM_ATTR bool onLcdVsyncCallback(void *user_data)
 {
     BaseType_t need_yield = pdFALSE;

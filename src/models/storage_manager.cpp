@@ -87,7 +87,15 @@ uint8_t* StorageManager::readImageToPSRAM(size_t* outLen) {
         return nullptr;
     }
     
-    file.read(buffer, size);
+    // Read in chunks to avoid PSRAM bus starvation (prevents screen shift/reboot)
+    size_t bytesRead = 0;
+    const size_t chunkSize = 16384; // 16KB chunks
+    while (bytesRead < size) {
+        size_t toRead = std::min(chunkSize, size - bytesRead);
+        file.read(buffer + bytesRead, toRead);
+        bytesRead += toRead;
+        yield(); // Let the LCD DMA have some bus time
+    }
     file.close();
     
     return buffer;

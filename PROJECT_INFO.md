@@ -31,6 +31,12 @@
 - **Thread Safety**: Uses `lvgl_port_lock()`/`unlock()` for all UI manipulations.
 - **State Management**: Seamlessly toggles between the "No Image" instructional view and the active picture frame.
 
+### Display Timing & Stability
+- **Clock Speed**: **12.5MHz** PCLK (Balanced for stability vs. bandwidth).
+- **Sync Parameters**: Widened porches (**8/12/12** horizontal, **2/16/16** vertical) to prevent panel desync.
+- **PSRAM Access**: Filesystem reads are performed in **16KB chunks** with `yield()` calls to prevent starving the LCD DMA engine.
+- **Bus Contention**: LVGL rendering is paused (`lvgl_port_stop`) during heavy I/O operations.
+
 ### Build Configuration (platformio.ini)
 - **Board**: `esp32-s3-devkitc1-n16r8`
 - **Partition Scheme**: `large_spiffs_16MB.csv` (customized for 16MB)

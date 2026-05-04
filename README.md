@@ -25,7 +25,7 @@ A WiFi-enabled digital picture frame project based on the Waveshare ESP32-S3-Tou
    - **Compact Settings**: Redesigned one-page menu for easy control.
    - **24H Flip-Clock**: Premium animated clock overlay with touch pass-through.
 6. **Hardware-Level Stability**:
-   - **Optimized Timing**: LCD PCLK tuned to 12MHz for artifact-free rendering.
+   - **Optimized Timing**: LCD PCLK tuned to 12.5MHz for artifact-free rendering.
    - **Atomic Transitions**: Backlight-managed "clean reveal" during image updates to prevent flickering.
    - **Bus Protection**: Automatic LVGL task suspension during Flash I/O to prevent PSRAM contention.
 7. **Clean Boot**:
