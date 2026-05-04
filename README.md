@@ -13,29 +13,24 @@ A WiFi-enabled digital picture frame project based on the Waveshare ESP32-S3-Tou
 ## Features
 1. **Splash Screen**: Professional UI showing network status and instructions.
 2. **WiFi Setup**: WiFiManager portal for easy network configuration.
-3. **Web Server & Cropping Tool**: 
+3. **Web Server & Advanced Client**: 
    - Access via `http://<device-ip>`
-   - Upload JPG/PNG/BMP
-   - **Built-in Cropper**: Precise 800x480 locked aspect ratio crop tool.
-4. **Reliable Storage**: 
+   - **Photo Studio**: Upload JPG/PNG/BMP with a built-in 800x480 precise crop tool.
+   - **Solid Backgrounds**: Apply flat color backgrounds directly from a color picker.
+4. **Persistent Settings**: 
+   - Uses `Preferences.h` (NVS) to save your preferences (like Clock ON/OFF) across reboots.
    - LittleFS for image persistence.
-   - Automatic filesystem repair and reformatting if corruption is detected.
-5. **Professional UI**:
-   - **Centered Status**: Clean "No Image Loaded" screen with large fonts and clear connection instructions.
-   - **Settings Menu**: Accessible via gear icon with professional flex-aligned layout.
-   - **24H Flip-Clock**: Toggleable overlay that displays a premium animated clock on top of the frame.
-   - **Navigation**: "X" close button and intuitive toggle controls.
-6. **Robust Image Upload**:
-   - Automatic LVGL task suspension during write to prevent flash/DMA bus contention.
-   - Filesystem remounting to ensure data visibility.
-7. **Clean Boot (Anti-Flash)**:
-   - Synchronized backlight control to prevent the common "white screen" flash during startup.
-   - Display remains dark until the first frame is ready to render.
-8. **24H Flip-Clock Overlay**:
-   - Premium animated flip-clock that can be toggled on top of the image.
-   - Professional "retro" look with custom-designed digits.
-9. **NTP Time Sync**:
-   - Automatic time synchronization for Israel (IST/IDT) with full DST support.
+5. **Production UI**:
+   - **Centered Status**: Clean "No Image Loaded" screen with connection instructions.
+   - **Compact Settings**: Redesigned one-page menu for easy control.
+   - **24H Flip-Clock**: Premium animated clock overlay with touch pass-through.
+6. **Hardware-Level Stability**:
+   - **Optimized Timing**: LCD PCLK tuned to 12MHz for artifact-free rendering.
+   - **Atomic Transitions**: Backlight-managed "clean reveal" during image updates to prevent flickering.
+   - **Bus Protection**: Automatic LVGL task suspension during Flash I/O to prevent PSRAM contention.
+7. **Clean Boot**:
+   - Synchronized backlight control prevents the "white flash" during startup.
+   - NTP time synchronization with automatic DST support for Israel.
 
 ## Build & Flash
 
