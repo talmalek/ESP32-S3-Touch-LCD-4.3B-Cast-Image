@@ -120,12 +120,6 @@ static const char* HTML_PAGE = R"raw(<!DOCTYPE html>
             <div class="img-container">
                 <img id="previewImg" src="">
             </div>
-            <div style="text-align: center; margin-top: 15px;">
-                <label style="color: white; font-size: 16px;">
-                    <input type="checkbox" id="scrollCheck" style="margin-right: 8px;"> 
-                    Enable Scroll Animation (High Res)
-                </label>
-            </div>
         </div>
         
         <button class="btn" id="uploadBtn" style="display: none;">Upload Image</button>
@@ -163,16 +157,11 @@ static const char* HTML_PAGE = R"raw(<!DOCTYPE html>
             if (cropper) cropper.destroy();
             
             previewImg.onload = () => {
-                const scrollCheck = document.getElementById('scrollCheck');
-                const getAspect = () => scrollCheck.checked ? NaN : (800 / 480);
                 cropper = new Cropper(previewImg, {
                     aspectRatio: 800 / 480,
                     viewMode: 1,
                     autoCropArea: 1,
                 });
-                scrollCheck.onchange = () => {
-                    cropper.setAspectRatio(scrollCheck.checked ? NaN : (800 / 480));
-                };
             };
             showStatus('Drag the frame to crop the image', true);
         });
@@ -183,13 +172,8 @@ static const char* HTML_PAGE = R"raw(<!DOCTYPE html>
             uploadBtn.textContent = 'Processing...';
             
             try {
-                const isScroll = document.getElementById('scrollCheck').checked;
-                const outWidth = 800;  // always 800 - firmware decodes at fixed 800px width
-                const cropData = cropper.getData();
-                // For scroll: export at proportional height based on crop; for normal: fixed 480
-                const outHeight = isScroll
-                    ? Math.round(cropData.height * (800 / cropData.width))
-                    : 480;
+                const outWidth = 800;
+                const outHeight = 480;
 
                 const canvas = cropper.getCroppedCanvas({
                     width: outWidth,

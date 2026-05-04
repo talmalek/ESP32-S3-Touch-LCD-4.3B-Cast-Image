@@ -195,24 +195,6 @@ void FrameUI::loadStoredImage() {
         
         lv_obj_add_flag(info_label, LV_OBJ_FLAG_HIDDEN);
         lv_obj_add_flag(ip_label, LV_OBJ_FLAG_HIDDEN);
-        
-        // Only animate if this is a scroll image (taller than the screen)
-        lv_anim_del(bg_img, nullptr);
-        if (height > 480) {
-            lv_anim_t a;
-            lv_anim_init(&a);
-            lv_anim_set_var(&a, bg_img);
-            lv_anim_set_values(&a, 0, 480 - (int32_t)height);
-            lv_anim_set_time(&a, (height - 480) * 15);
-            lv_anim_set_playback_time(&a, (height - 480) * 15);
-            lv_anim_set_repeat_count(&a, LV_ANIM_REPEAT_INFINITE);
-            lv_anim_set_playback_delay(&a, 1000);
-            lv_anim_set_repeat_delay(&a, 1000);
-            lv_anim_set_exec_cb(&a, [](void* var, int32_t v) {
-                lv_obj_set_y((lv_obj_t*)var, v);
-            });
-            lv_anim_start(&a);
-        }
     } else {
         if (img_buffer) heap_caps_free(img_buffer);
         img_buffer = nullptr;
